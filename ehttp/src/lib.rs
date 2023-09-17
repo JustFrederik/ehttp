@@ -88,6 +88,9 @@ pub use web::spawn_future;
 #[cfg(feature = "streaming")]
 pub mod streaming;
 
+#[cfg(feature = "multipart")]
+pub mod multipart;
+
 /// Helper for constructing [`Request::headers`].
 /// ```
 /// use ehttp::Request;

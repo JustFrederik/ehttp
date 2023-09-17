@@ -1,4 +1,6 @@
 use std::collections::BTreeMap;
+#[cfg(feature = "multipart")]
+use crate::multipart::MultipartBuilder;
 
 /// A simple HTTP request.
 #[derive(Clone, Debug)]
@@ -26,6 +28,20 @@ impl Request {
             body: vec![],
             headers: crate::headers(&[("Accept", "*/*")]),
         }
+    }
+
+    #[cfg(feature = "multipart")]
+    pub fn multipart(url: impl ToString, builder: MultipartBuilder) -> std::io::Result<Self> {
+        let (content_type,data) = builder.finish()?;
+        Ok(Self {
+            method: "POST".to_string(),
+            url: url.to_string(),
+            body: data,
+            headers: crate::headers(&[
+                ("Accept", "*/*"),
+                ("Content-Type", &*content_type),
+            ]),
+        })
     }
 
     /// Create a `POST` request with the given url and body.
