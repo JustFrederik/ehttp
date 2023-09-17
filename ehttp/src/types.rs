@@ -1,4 +1,6 @@
 use std::collections::BTreeMap;
+use std::fmt::{Display, Formatter, Write};
+
 #[cfg(feature = "multipart")]
 use crate::multipart::MultipartBuilder;
 
@@ -18,12 +20,50 @@ pub struct Request {
     pub headers: BTreeMap<String, String>,
 }
 
+/// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+pub enum Method {
+    ///The GET method requests a representation of the specified resource. Requests using GET should only retrieve data.
+    Get,
+    /// The HEAD method asks for a response identical to a GET request, but without the response body.
+    Head,
+    /// The POST method submits an entity to the specified resource, often causing a change in state or side effects on the server.
+    Post,
+    /// The PUT method replaces all current representations of the target resource with the request payload.
+    Put,
+    /// The DELETE method deletes the specified resource.
+    Delete,
+    /// The CONNECT method establishes a tunnel to the server identified by the target resource.
+    Connect,
+    /// The OPTIONS method describes the communication options for the target resource.
+    Options,
+    /// The TRACE method performs a message loop-back test along the path to the target resource.
+    Trace,
+    /// The PATCH method applies partial modifications to a resource.
+    Patch,
+}
+
+impl Display for Method {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Method::Get => write!(f, "GET"),
+            Method::Head => write!(f, "HEAD"),
+            Method::Post => write!(f, "POST"),
+            Method::Put => write!(f, "PUT"),
+            Method::Delete => write!(f, "DELETE"),
+            Method::Connect => write!(f, "CONNECT"),
+            Method::Options => write!(f, "OPTIONS"),
+            Method::Trace => write!(f, "TRACE"),
+            Method::Patch => write!(f, "PATCH"),
+        }
+    }
+}
+
 impl Request {
     /// Create a `GET` request with the given url.
     #[allow(clippy::needless_pass_by_value)]
     pub fn get(url: impl ToString) -> Self {
         Self {
-            method: "GET".to_owned(),
+            method: Method::Get.to_string(),
             url: url.to_string(),
             body: vec![],
             headers: crate::headers(&[("Accept", "*/*")]),
@@ -31,10 +71,11 @@ impl Request {
     }
 
     #[cfg(feature = "multipart")]
+    /// Creates a `POST` mutlipart request withen given url and builder
     pub fn multipart(url: impl ToString, builder: MultipartBuilder) -> std::io::Result<Self> {
-        let (content_type,data) = builder.finish()?;
+        let (content_type, data) = builder.finish()?;
         Ok(Self {
-            method: "POST".to_string(),
+            method: Method::Post.to_string(),
             url: url.to_string(),
             body: data,
             headers: crate::headers(&[
@@ -48,7 +89,7 @@ impl Request {
     #[allow(clippy::needless_pass_by_value)]
     pub fn post(url: impl ToString, body: Vec<u8>) -> Self {
         Self {
-            method: "POST".to_owned(),
+            method: Method::Post.to_string(),
             url: url.to_string(),
             body,
             headers: crate::headers(&[
@@ -56,6 +97,12 @@ impl Request {
                 ("Content-Type", "text/plain; charset=utf-8"),
             ]),
         }
+    }
+
+    /// Allows to change used method
+    pub fn method(mut self, method: Method) -> Self {
+        self.method = method.to_string();
+        self
     }
 }
 
