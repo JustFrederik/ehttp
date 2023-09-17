@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
 #[cfg(feature = "multipart")]
 use crate::multipart::MultipartBuilder;
+use std::collections::BTreeMap;
 
 /// A simple HTTP request.
 #[derive(Clone, Debug)]
@@ -30,17 +30,26 @@ impl Request {
         }
     }
 
+    /// Multipart HTTP for both native and WASM.
+    ///
+    /// Requires the `multipart` feature to be enabled.
+    ///
+    /// Example:
+    /// ```
+    /// use std::io::Cursor;
+    /// use ehttp::multipart::MultipartBuilder;
+    /// let url = "https://www.example.com";
+    /// let request = ehttp::Request::multipart(url, MultipartBuilder::new().add_file("image", "/home/user/image.png").unwrap().add_text("label", "lorem ipsum").unwrap().add_stream(&mut Cursor::new(vec![0,0,0,0]), "4_empty_bytes", Some("4_empty_bytes.png"), None).unwrap()).unwrap();
+    /// ehttp::fetch(request, |result| {
+    /// });
     #[cfg(feature = "multipart")]
     pub fn multipart(url: impl ToString, builder: MultipartBuilder) -> std::io::Result<Self> {
-        let (content_type,data) = builder.finish()?;
+        let (content_type, data) = builder.finish()?;
         Ok(Self {
             method: "POST".to_string(),
             url: url.to_string(),
             body: data,
-            headers: crate::headers(&[
-                ("Accept", "*/*"),
-                ("Content-Type", &*content_type),
-            ]),
+            headers: crate::headers(&[("Accept", "*/*"), ("Content-Type", &*content_type)]),
         })
     }
 
