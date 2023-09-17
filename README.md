@@ -29,4 +29,6 @@ You can communicate the results back to the main thread using something like:
 * [`tokio::sync::watch::channel`](https://docs.rs/tokio/latest/tokio/sync/watch/fn.channel.html)
 
 There is also a streaming version under `ehttp::fetch::streaming`, hidden behind the `streaming` feature flag.
-Multipart requests need to be enabled with  the `multipart` feature flag.
+<br />
+<br />
+Multipart requests need to be enabled with  the `multipart` feature flag and can be used with `ehttp::Request::multipart`.
